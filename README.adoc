@@ -1,0 +1,87 @@
+= Portfolio Optimizer (mlr3 + MLflow)
+
+This project implements a modular portfolio optimization system in R using the `mlr3` ecosystem and integrated with `MLflow` for experiment tracking. It supports custom constraints, sector-specific bounds, and flexible optimization objectives.
+
+== Features
+
+- Portfolio optimization with `nloptr` and equality constraints
+- Custom objective and constraint registry (YAML-configurable)
+- `mlr3` pipeline integration for preprocessing + learner orchestration
+- MLflow logging of parameters, metrics, and artifacts
+- Evaluation of saved models (e.g., Information Ratio, Alpha)
+- Quarto report generation with visualizations
+
+== Folder Structure
+
+```
+.
+├── R/                      # R6 classes and pipeline runner
+├── data/                  # Input CSV and YAML config
+├── output/                # Model weights and result parquet files
+├── reports/               # Quarto reports
+├── tests/                 # Unit tests
+└── register_model.py      # Python script for MLflow model registration
+```
+
+== Getting Started
+
+=== Install Dependencies
+```r
+install.packages(c("mlr3", "mlr3pipelines", "mlr3learners", "mlr3filters", "arrow", "data.table", "yaml", "mlflow", "ggplot2", "paradox", "R6"))
+```
+
+=== Run Pipeline
+```r
+source("R/pipeline_runner.R")
+result <- run_pipeline()
+```
+
+== Configuring the Optimizer
+
+Edit `data/optimizer_config.yaml`:
+
+```yaml
+optimizer:
+  bounds:
+    sector_tech: [0.0, 0.3]
+    sector_industrial: [0.1, 0.5]
+    sector_energy: [0.2, 0.6]
+  objective: mean_error
+  constraint: weights_sum_to_1
+  algorithm: NLOPT_LD_SLSQP
+  maxeval: 500
+```
+
+== Evaluating a Saved Model
+
+```r
+source("R/evaluator.R")
+eval <- evaluate_saved_model()
+print(eval$alpha)
+print(eval$ir)
+```
+
+== Logging and MLflow
+
+Artifacts such as weights and predictions are logged to MLflow:
+```r
+Sys.setenv(TRACKING_URI = "mlruns")
+```
+
+Register the model using the Python script:
+```bash
+python register_model.py $(cat output/latest_run_id.txt) output/weights.parquet
+```
+
+== Quarto Report
+
+Open and knit `reports/portfolio_report.qmd` to generate full visual analytics of the run.
+
+== Extending
+
+- Add new objectives or constraints in `PortfolioOptimizer.R`
+- Swap learners or add transformers via `OptimizerGraphLearner`
+- Use `mlr3tuning` to tune bounds or other hyperparameters
+
+== License
+MIT or similar, depending on your organization’s policy.

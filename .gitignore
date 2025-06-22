@@ -1,0 +1,3 @@
+notebooks/.quarto/*
+notebooks/var/*
+.DS_Store

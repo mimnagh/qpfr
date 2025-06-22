@@ -1,0 +1,10 @@
+optimizer:
+  bounds:
+    sector_tech: [0.0, 0.3]
+    sector_industrial: [0.1, 0.5]
+    sector_energy: [0.2, 0.6]
+  init_w: [0.3, 0.3, 0.4]
+  objective: mean_error
+  constraint: weights_sum_to_1
+  algorithm: NLOPT_LD_SLSQP
+  maxeval: 500

@@ -1,0 +1,48 @@
+---
+title: "Portfolio Optimization with Custom Objective/Constraint"
+format: html
+editor: visual
+---
+
+## Modify YAML Configuration
+
+```{r}
+# Load and edit configuration manually before running
+# config_path <- here::here("data/custom_obj_config.yaml")
+# file.copy(here::here("data/optimizer_config.yaml"), config_path, overwrite = TRUE)
+
+# Example YAML should be edited to:
+# optimizer:
+#   bounds:
+#     sector_tech: [0.0, 0.3]
+#     sector_industrial: [0.1, 0.5]
+#     sector_energy: [0.2, 0.6]
+#   objective: mean_error
+#   constraint: weights_sum_to_1
+```
+
+## Run Pipeline with Modified Objective
+
+```{r}
+source("R/pipeline_runner.R")
+result <- run_pipeline(config_file = "data/custom_obj_config.yaml")
+print(head(result))
+```
+
+## Evaluate and Inspect Metrics
+
+```{r}
+source("R/evaluator.R")
+eval_result <- evaluate_saved_model()
+cat("Alpha:", eval_result$alpha, "\n")
+cat("IR:", eval_result$ir, "\n")
+```
+
+```{r}
+# Plot predicted vs actual returns
+library(ggplot2)
+ggplot(eval_result$result, aes(x = actual_return, y = predicted_return)) +
+  geom_point(color = "darkgreen") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(title = "Custom Objective Evaluation", x = "Actual", y = "Predicted")
+```

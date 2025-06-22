@@ -1,0 +1,29 @@
+---
+title: "Portfolio Optimizer Usage"
+format: html
+editor: visual
+---
+
+```{r}
+# Load pipeline and run it
+source(here::here("R/pipeline_runner.R"))
+result <- run_pipeline()
+print(head(result))
+```
+
+```{r}
+# Evaluate saved model
+source(here::here("R/evaluator.R"))
+eval_result <- evaluate_saved_model()
+cat("Alpha:", eval_result$alpha, "\n")
+cat("IR:", eval_result$ir, "\n")
+```
+
+```{r}
+# Visualize predicted vs actual returns
+library(ggplot2)
+ggplot(eval_result$result, aes(x = actual_return, y = predicted_return)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(title = "Predicted vs Actual Return", x = "Actual", y = "Predicted")
+```
