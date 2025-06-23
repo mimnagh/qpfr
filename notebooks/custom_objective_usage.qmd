@@ -24,15 +24,15 @@ editor: visual
 ## Run Pipeline with Modified Objective
 
 ```{r}
-source("R/pipeline_runner.R")
-result <- run_pipeline(config_file = "data/custom_obj_config.yaml")
+source(here::here("R/pipeline_runner.R"))
+result <- run_pipeline(config_file = here::here("data/custom_obj_config.yaml"))
 print(head(result))
 ```
 
 ## Evaluate and Inspect Metrics
 
 ```{r}
-source("R/evaluator.R")
+source(here::here("R/evaluator.R"))
 eval_result <- evaluate_saved_model()
 cat("Alpha:", eval_result$alpha, "\n")
 cat("IR:", eval_result$ir, "\n")

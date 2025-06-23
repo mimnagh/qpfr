@@ -8,16 +8,20 @@ editor: visual
 
 ```{r}
 # Setup: copy and edit input/config manually if needed
-file.copy("data/sector_factor_timeseries.csv", "data/custom_input.csv", overwrite = TRUE)
-file.copy("data/optimizer_config.yaml", "data/custom_config.yaml", overwrite = TRUE)
+file.copy(here::here("data/sector_factor_timeseries.csv"),
+          here::here("data/custom_input.csv"), 
+          overwrite = TRUE)
+file.copy(here::here("data/optimizer_config.yaml"),
+          here::here("data/custom_config.yaml"), 
+          overwrite = TRUE)
 ```
 
 ```{r}
 # Load pipeline using new input and config
-source("R/pipeline_runner.R")
-result <- run_pipeline(input_csv = "data/custom_input.csv",
-                       config_file = "data/custom_config.yaml",
-                       output_file = "output/custom_optimization.parquet")
+source(here::here("R/pipeline_runner.R"))
+result <- run_pipeline(input_csv = here::here("data/custom_input.csv"),
+                       config_file = here::here("data/custom_config.yaml"),
+                       output_file = here::here("output/custom_optimization.parquet"))
 print(head(result))
 ```
 
@@ -25,9 +29,9 @@ print(head(result))
 
 ```{r}
 # Evaluate the saved weights
-source("R/evaluator.R")
-eval_result <- evaluate_saved_model(input_csv = "data/custom_input.csv",
-                                    weights_path = "output/weights.parquet")
+source(here::here("R/evaluator.R"))
+eval_result <- evaluate_saved_model(input_csv = here::here("data/custom_input.csv"),
+                                    weights_path = here::here("output/weights.parquet"))
 cat("Alpha:", eval_result$alpha, "\n")
 cat("IR:", eval_result$ir, "\n")
 ```
