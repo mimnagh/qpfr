@@ -1,0 +1,10 @@
+optimizer:
+  target_column: rfr.trt
+  bounds:
+    voo.trt: [0.0, 1]
+    blv.trt: [0.0, 1]
+  init_w: [0.1, 0.9]
+  objective: markowitz
+  constraint: weights_sum_to_1
+  algorithm: NLOPT_LD_SLSQP
+  maxeval: 500

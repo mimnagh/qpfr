@@ -1,0 +1,76 @@
+# Portfolio Optimization using Markowitz Model
+```{r}
+library(PerformanceAnalytics)
+library(xts)
+
+risk_free_rate = 0.0019
+
+
+VOO <- readxl::read_xlsx(
+  path = here::here("notebooks/Stocks vs Bonds.xlsx"),
+  sheet = "VOO"
+)|> janitor::clean_names()
+# Convert VOO to xts format
+VOO_xts <- as.xts(VOO)
+VOO_xts$return <- Return.calculate(VOO_xts$adj_close, method = "discrete")
+# Calculate statistics for VOO
+stats_VOO <- list(
+  mean = mean(VOO_xts$return, na.rm = TRUE),
+  sd = sd(VOO_xts$return, na.rm = TRUE),
+  skewness = PerformanceAnalytics::skewness(VOO_xts$return, na.rm = TRUE),
+  kurtosis = PerformanceAnalytics::kurtosis(VOO_xts$return, na.rm = TRUE)
+)
+stats_VOO$var <- stats_VOO$sd^2
+stats_VOO$sharpe <- (stats_VOO$mean- risk_free_rate) / stats_VOO$sd
+
+```
+
+```{r}
+BLV <- readxl::read_xlsx(
+  path = here::here("notebooks/Stocks vs Bonds.xlsx"),
+  sheet = "BLV"
+) |> janitor::clean_names()
+# Convert BLV to xts format  
+BLV_xts <- as.xts(BLV)
+BLV_xts$return <- Return.calculate(BLV_xts$adj_close, method = "discrete")
+# Calculate statistics for BLV
+stats_BLV <- list(
+  mean = mean(BLV_xts$return, na.rm = TRUE),
+  sd = sd(BLV_xts$return, na.rm = TRUE),
+  skewness = PerformanceAnalytics::skewness(BLV_xts$return, na.rm = TRUE),
+  kurtosis = PerformanceAnalytics::kurtosis(BLV_xts$return, na.rm = TRUE)
+)
+stats_BLV$var <- stats_BLV$sd^2
+stats_BLV$sharpe <- (stats_BLV$mean - risk_free_rate) / stats_BLV$sd
+
+```
+
+```{r}
+correlation <- as.vector(cor(VOO_xts$return, BLV_xts$return, use = "complete.obs"))
+covariance <- as.vector(cov(VOO_xts$return, BLV_xts$return, use = "complete.obs"))
+```
+
+## Calculate Sharp Ratio for different weights
+This shows that the combination of two securities can yield a higher Sharpe ratio than either one individually, depending on the weights assigned to each.
+```{r}
+# 
+test_df <- tibble::tibble(
+  weight_VOO = seq(0, 1, by = 0.1),
+) |>
+  dplyr::mutate(
+    weight_BLV = 1 - weight_VOO,
+    mean_return = weight_VOO * stats_VOO$mean + weight_BLV * stats_BLV$mean,
+    sd_return = sqrt(
+      (weight_VOO^2 * stats_VOO$var) + 
+      (weight_BLV^2 * stats_BLV$var) + 
+      (2 * weight_VOO * weight_BLV * covariance)
+    ),
+    sharpe_ratio = (mean_return - risk_free_rate) / sd_return
+  )
+```
+
+Now we perform the optimization to find the weights that maximize the Sharpe ratio.
+```{r}
+
+```
+

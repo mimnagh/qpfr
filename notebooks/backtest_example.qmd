@@ -1,0 +1,30 @@
+
+---
+title: "Backtest Example"
+format: html
+editor: visual
+---
+
+```{r}
+source("R/backtest_runner.R")
+
+# Run a 3-observation rolling window backtest
+bt_results <- run_backtest(
+  input_csv = "data/sector_factor_timeseries.csv",
+  config_file = "data/optimizer_config.yaml",
+  initial_window = 3,
+  horizon = 1,
+  skip = 0
+)
+
+print(bt_results)
+```
+
+```{r}
+# Visualize predicted vs actual from backtest
+library(ggplot2)
+ggplot(bt_results, aes(x = actual_return, y = predicted_return)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Backtest Results: Predicted vs Actual Returns")
+```
