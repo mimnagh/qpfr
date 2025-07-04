@@ -30,7 +30,6 @@ run_pipeline <- function(input_csv = here::here("data/sector_factor_timeseries.c
   graph_learner <- build_optimizer_graph(config$optimizer)
   graph_learner$train(task)
   prediction <- graph_learner$predict(task)
-
   # Step 4: Log configuration parameters to MLflow
   logger$log_param("features", paste(colnames(X), collapse = ","))
   logger$log_param("lower_bound", paste(purrr::map_dbl(config$optimizer$bounds, 1), collapse = ","))
@@ -46,11 +45,19 @@ run_pipeline <- function(input_csv = here::here("data/sector_factor_timeseries.c
   result_dt <- data.table::data.table(predicted_return = prediction$response, actual_return = y)
   arrow::write_parquet(result_dt, output_file)
   logger$log_artifact(output_file)
-  logger$log_artifact("output/weights.parquet")
+
+  # Step 7: Log the weights as an artifact
+  weights_file <- here::here("output/weights.parquet")
+  weights_dt <- graph_learner$graph_model$pipeops$regr.portfolio_optimizer$state$model
+  arrow::write_parquet(weights_dt, weights_file)
+  logger$log_artifact(weights_file)
 
   # Step 7: End MLflow run
   logger$end()
 
   # Return result data.table
-  return(result_dt)
+  return(list(
+    predictions = result_dt,
+    weights = weights_dt)
+  )
 }

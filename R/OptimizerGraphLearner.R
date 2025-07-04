@@ -6,11 +6,7 @@ library(mlr3filters)
 source(here::here("R/PortfolioOptimizer.R"))
 
 build_optimizer_graph <- function(config = list()) {
-  print(config$bounds)
   optimizer <- PortfolioOptimizer$new(config)
-
-  print(optimizer$.train)
-
   # Create pipeline with optional filtering and scaling
   filter_po = po("filter", filter = mlr3filters::FilterVariance$new(), param_vals = list(filter.frac = 1))
   scale_po = po("scale")

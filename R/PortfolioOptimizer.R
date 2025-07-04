@@ -112,13 +112,12 @@ PortfolioOptimizer = R6Class("PortfolioOptimizer",
             maxeval = 500
           )
         )
-
-      # Store the optimized weights in the model field
-      self$model = res$par
       # Save the weights to disk as a named row in a Parquet file
-      weights_df <- data.frame(t(self$model))
-      colnames(weights_df) <- task$feature_names
-      arrow::write_parquet(weights_df, here::here("output/weights.parquet"))
+      weights_df <- data.frame(t(res$par))
+      colnames(weights_df) <- paste0(task$feature_names,".wt")
+            # Store the optimized weights in the model field
+      self$model = weights_df
+
     }
   ) # End of private methods
 
