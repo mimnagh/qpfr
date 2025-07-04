@@ -16,6 +16,6 @@ build_optimizer_graph <- function(config = list()) {
   scale_po = po("scale")
   learner_po = po("learner", learner = optimizer)
 
-  graph = filter_po %>>% scale_po %>>% learner_po
-  GraphLearner$new(graph)
+  # graph = filter_po %>>% scale_po %>>% learner_po
+  GraphLearner$new(learner_po)
 }

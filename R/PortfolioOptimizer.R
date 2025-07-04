@@ -15,7 +15,14 @@ PortfolioOptimizer = R6Class("PortfolioOptimizer",
         registry = list(
             # Registry of available objective functions
             .objective_registry = list(
-              mean_error = function(w, X, y) -mean(X %*% w - y)  # Negative mean error (maximize alpha)
+              mean_error = function(w, X, y) -mean(X %*% w - y),  # Negative mean error (maximize alpha)
+              markowitz = function(w, X, y) {
+                # Calculate Sharpe ratio (mean return / standard deviation)
+                mu = mean(X %*% w - y)
+                sigma = sd(X %*% w - y)
+                if (sigma == 0) return(0)  # Avoid division by zero
+                return(-mu / sigma)  # Negative for minimization
+              }
             ),
 
             # Registry of equality constraints
@@ -81,10 +88,9 @@ PortfolioOptimizer = R6Class("PortfolioOptimizer",
       # Extract bounds for each feature from configuration
       bounds <- self$param_set$values$bounds
       features <- self$param_set$values$feature_names
-
       # Create lower and upper bound vectors in the same order as features
-      lb <- purrr::map_dbl(features, ~ bounds[[.x]][1])
-      ub <- purrr::map_dbl(features, ~ bounds[[.x]][2])
+      lb <- purrr::map_dbl(features, ~ bounds[[.x]][[1]])
+      ub <- purrr::map_dbl(features, ~ bounds[[.x]][[2]])
       # Retrieve selected objective and constraint functions from registry
       obj_fn <- self$registry$.objective_registry[[self$param_set$values$objective]]
       eq_fn <- self$registry$.constraint_registry[[self$param_set$values$constraint]]
@@ -92,12 +98,12 @@ PortfolioOptimizer = R6Class("PortfolioOptimizer",
       # Define wrapper functions for nloptr
       objective_fn = function(w) obj_fn(w, X, y)       # Objective to minimize
       eq_constraint = function(w) eq_fn(w)             # Equality constraint
-
+      ineq_constraint = function(w) -1  # No inequality constraints
       # Run the optimizer with constraints and bounds
       res <- nloptr::slsqp(
           x0 = init_w,
           fn = objective_fn,
-          hin = NULL,
+          hin = ineq_constraint,
           heq = eq_constraint,
           lower = lb,
           upper = ub,
