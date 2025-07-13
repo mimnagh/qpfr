@@ -1,7 +1,5 @@
-library(mlflow)
-library(R6)
-
-MLFlowProxyBase = R6Class("MLFlowProxyBase",
+MLFlowProxyBase = R6::R6Class(
+  "MLFlowProxyBase",
   public = list(
     run = NULL,
     start = function() {},
@@ -11,7 +9,8 @@ MLFlowProxyBase = R6Class("MLFlowProxyBase",
     end = function() {}
   )
 )
-MLFlowProxyNoop = R6Class("MLFlowProxyNoop",
+MLFlowProxyNoop = R6::R6Class(
+  "MLFlowProxyNoop",
   inherit = MLFlowProxyBase,
   public = list(
     # No need to redefine methods unless you want to override base behavior
@@ -21,9 +20,10 @@ MLFlowProxyNoop = R6Class("MLFlowProxyNoop",
 # Load MLflow and R6 for experiment tracking and object-oriented structure
 
 # Define a proxy class to wrap mlflow logging commands
-MLFlowProxy = R6Class("MLFlowProxy",
+MLFlowProxy = R6::R6Class(
+  "MLFlowProxy",
   public = list(
-    run = NULL,  # Internal run object
+    run = NULL, # Internal run object
 
     # Start a new MLflow run and record its ID
     start = function() {
@@ -52,4 +52,3 @@ MLFlowProxy = R6Class("MLFlowProxy",
     }
   )
 )
-

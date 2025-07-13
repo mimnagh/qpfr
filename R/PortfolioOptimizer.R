@@ -1,47 +1,43 @@
-library(R6)            # R6 classes for OOP
-library(mlr3)          # Machine learning framework
-library(nloptr)        # Nonlinear optimization library
-library(arrow)         # For saving output weights as parquet
-library(purrr)         # Functional programming helpers
-library(paradox)
-
 # Define the PortfolioOptimizer class
-PortfolioOptimizer = R6Class("PortfolioOptimizer",
+PortfolioOptimizer <- R6::R6Class(
+  "PortfolioOptimizer",
   inherit = mlr3::LearnerRegr,
   public = list(
-    registry = NULL,  # Registry for objective and constraint functions
+    registry = NULL, # Registry for objective and constraint functions
     # Constructor: initialize optimizer with configuration
     initialize = function(config = list()) {
-        registry = list(
-            # Registry of available objective functions
-            .objective_registry = list(
-              mean_error = function(w, X, y) -mean(X %*% w - y),  # Negative mean error (maximize alpha)
-              markowitz = function(w, X, y) {
-                # Calculate Sharpe ratio (mean return / standard deviation)
-                mu = mean(X %*% w - y)
-                sigma = sd(X %*% w - y)
-                if (sigma == 0) return(0)  # Avoid division by zero
-                return(-mu / sigma)  # Negative for minimization
-              }
-            ),
+      registry = list(
+        # Registry of available objective functions
+        .objective_registry = list(
+          mean_error = function(w, X, y) -mean(X %*% w - y), # Negative mean error (maximize alpha)
+          markowitz = function(w, X, y) {
+            # Calculate Sharpe ratio (mean return / standard deviation)
+            mu = mean(X %*% w - y)
+            sigma = sd(X %*% w - y)
+            if (sigma == 0) {
+              return(0)
+            } # Avoid division by zero
+            return(-mu / sigma) # Negative for minimization
+          }
+        ),
 
-            # Registry of equality constraints
-            .constraint_registry = list(
-              weights_sum_to_1 = function(w) sum(w) - 1  # Ensure portfolio weights sum to 1
-            )                                    
-          )
+        # Registry of equality constraints
+        .constraint_registry = list(
+          weights_sum_to_1 = function(w) sum(w) - 1 # Ensure portfolio weights sum to 1
+        )
+      )
 
-      param_set_template = ps(
+      param_set_template = paradox::ps(
         # User-defined bounds per feature
-        bounds = p_uty(),
+        bounds = paradox::p_uty(),
         # Ordered list of feature names
-        feature_names = p_uty(),
+        feature_names = paradox::p_uty(),
         # Name of objective function from registry
-        objective = p_fct(levels = names(registry$.objective_registry)),
+        objective = paradox::p_fct(levels = names(registry$.objective_registry)),
         # Name of constraint function from registry
-        constraint = p_fct(levels = names(registry$.constraint_registry)),
+        constraint = paradox::p_fct(levels = names(registry$.constraint_registry)),
         # Initial weights
-        init_w = p_uty()
+        init_w = paradox::p_uty()
       )
 
       # Initialize learner metadata
@@ -82,7 +78,7 @@ PortfolioOptimizer = R6Class("PortfolioOptimizer",
       if (!is.null(self$param_set$values$init_w)) {
         init_w = self$param_set$values$init_w
       } else {
-        init_w = rep(1/n, n)
+        init_w = rep(1 / n, n)
       }
 
       # Extract bounds for each feature from configuration
@@ -92,33 +88,35 @@ PortfolioOptimizer = R6Class("PortfolioOptimizer",
       lb <- purrr::map_dbl(features, ~ bounds[[.x]][[1]])
       ub <- purrr::map_dbl(features, ~ bounds[[.x]][[2]])
       # Retrieve selected objective and constraint functions from registry
-      obj_fn <- self$registry$.objective_registry[[self$param_set$values$objective]]
-      eq_fn <- self$registry$.constraint_registry[[self$param_set$values$constraint]]
+      obj_fn <- self$registry$.objective_registry[[
+        self$param_set$values$objective
+      ]]
+      eq_fn <- self$registry$.constraint_registry[[
+        self$param_set$values$constraint
+      ]]
 
       # Define wrapper functions for nloptr
-      objective_fn = function(w) obj_fn(w, X, y)       # Objective to minimize
-      eq_constraint = function(w) eq_fn(w)             # Equality constraint
-      ineq_constraint = function(w) -1  # No inequality constraints
+      objective_fn = function(w) obj_fn(w, X, y) # Objective to minimize
+      eq_constraint = function(w) eq_fn(w) # Equality constraint
+      ineq_constraint = function(w) -1 # No inequality constraints
       # Run the optimizer with constraints and bounds
       res <- nloptr::slsqp(
-          x0 = init_w,
-          fn = objective_fn,
-          hin = ineq_constraint,
-          heq = eq_constraint,
-          lower = lb,
-          upper = ub,
-          control = list(
-            xtol_rel = 1e-6,
-            maxeval = 500
-          )
+        x0 = init_w,
+        fn = objective_fn,
+        hin = ineq_constraint,
+        heq = eq_constraint,
+        lower = lb,
+        upper = ub,
+        control = list(
+          xtol_rel = 1e-6,
+          maxeval = 500
         )
+      )
       # Save the weights to disk as a named row in a Parquet file
       weights_df <- data.frame(t(res$par))
-      colnames(weights_df) <- paste0(task$feature_names,".wt")
-            # Store the optimized weights in the model field
+      colnames(weights_df) <- paste0(task$feature_names, ".wt")
+      # Store the optimized weights in the model field
       self$model = weights_df
-
     }
   ) # End of private methods
-
 )

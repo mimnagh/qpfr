@@ -1,19 +1,9 @@
-
-# Load required libraries and source R modules
-library(arrow)  # for writing results
-
-# Load R6 classes for scoring, logging, data handling, and optimization
-source(here::here("R/AlphaScorer.R"))
-source(here::here("R/IRScorer.R"))  # Assuming IRScorer is in the same directory
-source(here::here("R/MLFlowProxy.R"))
-source(here::here("R/DataProvider.R"))
-source(here::here("R/OptimizerGraphLearner.R"))
-
 # Main function to execute the full pipeline
-run_pipeline <- function(input_csv = here::here("data/sector_factor_timeseries.csv"),
-                         config_file = here::here("data/optimizer_config.yaml"),
-                         output_file = here::here("output/optimization_results.parquet")) {
-
+run_pipeline <- function(
+  input_csv = here::here("data/sector_factor_timeseries.csv"),
+  config_file = here::here("data/optimizer_config.yaml"),
+  output_file = here::here("output/optimization_results.parquet")
+) {
   # Step 1: Load task and config using DataProvider
   data_provider <- DataProvider$new(input_csv, config_file)
   inputs <- data_provider$load()
@@ -32,8 +22,14 @@ run_pipeline <- function(input_csv = here::here("data/sector_factor_timeseries.c
   prediction <- graph_learner$predict(task)
   # Step 4: Log configuration parameters to MLflow
   logger$log_param("features", paste(colnames(X), collapse = ","))
-  logger$log_param("lower_bound", paste(purrr::map_dbl(config$optimizer$bounds, 1), collapse = ","))
-  logger$log_param("upper_bound", paste(purrr::map_dbl(config$optimizer$bounds, 2), collapse = ","))
+  logger$log_param(
+    "lower_bound",
+    paste(purrr::map_dbl(config$optimizer$bounds, 1), collapse = ",")
+  )
+  logger$log_param(
+    "upper_bound",
+    paste(purrr::map_dbl(config$optimizer$bounds, 2), collapse = ",")
+  )
 
   # Step 5: Evaluate results using custom scorers
   alpha_score <- AlphaScorer$new()$score(prediction)
@@ -42,7 +38,10 @@ run_pipeline <- function(input_csv = here::here("data/sector_factor_timeseries.c
   logger$log_metric("ir", ir_score)
 
   # Step 6: Write output predictions to parquet and log as artifact
-  result_dt <- data.table::data.table(predicted_return = prediction$response, actual_return = y)
+  result_dt <- data.table::data.table(
+    predicted_return = prediction$response,
+    actual_return = y
+  )
   arrow::write_parquet(result_dt, output_file)
   logger$log_artifact(output_file)
 
@@ -58,6 +57,6 @@ run_pipeline <- function(input_csv = here::here("data/sector_factor_timeseries.c
   # Return result data.table
   return(list(
     predictions = result_dt,
-    weights = weights_dt)
-  )
+    weights = weights_dt
+  ))
 }

@@ -12,3 +12,15 @@ RoxygenNote: 7.3.2
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Imports:
+    mlr3,
+    mlr3pipelines,
+    mlr3filters,
+    mlr3forcast,
+    purrr,
+    nloptr,
+    mlflow,
+    here,
+    data.table,
+    arrow,
+    yaml

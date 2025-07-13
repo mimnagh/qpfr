@@ -1,24 +1,20 @@
-
 # R/evaluator.R
-
-# Load necessary libraries for data handling and file IO
-library(data.table)  # For reading input CSV
-library(arrow)       # For reading weights from Parquet
 
 # Evaluate a saved portfolio optimizer model
 # Computes predicted returns, alpha, and information ratio
 
-evaluate_saved_model <- function(input_csv = here::here("data/sector_factor_timeseries.csv"),
-                                 weights_path = here::here("output/weights.parquet")) {
-
+evaluate_saved_model <- function(
+  input_csv = here::here("data/sector_factor_timeseries.csv"),
+  weights_path = here::here("output/weights.parquet")
+) {
   # Load input feature data and true returns
   Xy <- data.table::fread(input_csv)
-  X <- Xy[, !"target_column", with = FALSE]  # Features only
-  y <- Xy[["target_column"]]                # Target values (returns)
+  X <- Xy[, !"target_column", with = FALSE] # Features only
+  y <- Xy[["target_column"]] # Target values (returns)
 
   # Load optimized weights from a saved Parquet file
   weights <- arrow::read_parquet(weights_path)
-  w_vec <- as.vector(as.matrix(weights))  # Convert to numeric vector
+  w_vec <- as.vector(as.matrix(weights)) # Convert to numeric vector
 
   # Generate predicted returns via matrix multiplication
   predicted <- as.vector(as.matrix(X) %*% w_vec)

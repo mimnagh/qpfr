@@ -8,3 +8,4 @@ optimizer:
   constraint: weights_sum_to_1
   algorithm: NLOPT_LD_SLSQP
   maxeval: 500
+  order: id

@@ -1,33 +1,23 @@
-
 # R/backtest_runner.R
 
-library(mlr3)
-library(data.table)
-library(mlr3resampling)
-library(mlr3temporal)
-source("R/PortfolioOptimizer.R")
-source("R/DataProvider.R")
-source("R/MLFlowProxy.R")
-source("R/AlphaScorer.R")
-source("R/IRScorer.R")
-
-run_backtest <- function(input_csv = here::here("data/sector_factor_timeseries.csv"),
-                         config_file = here::here("data/optimizer_config.yaml"),
-                         initial_window = 3,
-                         horizon = 1,
-                         folds = 2) {
-
+run_backtest <- function(
+  input_csv = here::here("data/sector_factor_timeseries.csv"),
+  config_file = here::here("data/optimizer_config.yaml"),
+  initial_window = 3,
+  horizon = 1,
+  folds = 2
+) {
   data_provider <- DataProvider$new(input_csv, config_file)
   inputs <- data_provider$load()
   task <- inputs$task
   config <- inputs$config
-
-  resampling <- rsmp("forecast_cv")
+  resampling <- mlr3::rsmp("fcst.cv")
   resampling$param_set$values <- list(
     window_size = initial_window,
     horizon = horizon,
     folds = folds,
-    fixed_window = TRUE
+    fixed_window = TRUE,
+    step_size = 1
   )
   resampling$instantiate(task)
 

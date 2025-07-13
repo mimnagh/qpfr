@@ -1,4 +1,3 @@
-
 # tests/testthat/test_backtest_runner.R
 
 testthat::test_that("backtest runs without error", {

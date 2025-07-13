@@ -1,8 +1,8 @@
 # tests/testthat/test_alpha_scorer.R
 
-
-PredictionRegrFake = R6::R6Class("PredictionRegrFake",
-  inherit = PredictionRegr,
+PredictionRegrFake = R6::R6Class(
+  "PredictionRegrFake",
+  inherit = mlr3::PredictionRegr,
   public = list(
     initialize = function(truth, response) {
       super$initialize(
@@ -12,7 +12,8 @@ PredictionRegrFake = R6::R6Class("PredictionRegrFake",
         row_ids = seq_along(truth)
       )
     }
-  ))
+  )
+)
 
 test_that("AlphaScorer returns mean difference", {
   scorer = AlphaScorer$new()
