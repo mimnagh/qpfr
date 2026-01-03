@@ -6,3 +6,7 @@ Pipeline entrypoints (including `run_backtest`) SHALL accept an optional `seed` 
 #### Scenario: Deterministic backtest with seed
 - **WHEN** `run_backtest(seed = 42)` is run twice with identical inputs
 - **THEN** the outputs SHALL be identical across runs
+
+#### Scenario: Deterministic pipeline run with seed
+- **WHEN** `run_pipeline(seed = 42, ...)` is executed twice against the same inputs
+- **THEN** both the predictions and saved weights SHALL match exactly across runs
